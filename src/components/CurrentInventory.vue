@@ -31,7 +31,7 @@
               </td>
               <td>
                 <button class="add-to-basket-btn" @click="$emit('add-to-basket', item)">Add to Basket</button>
-                <button class="remove-btn" @click="$emit('remove-btn', item)">Delete</button>
+                <button class="remove-btn" @click="deleteItem(item)">Delete</button>
               </td>
             </tr>
           </tbody>
@@ -63,7 +63,6 @@ export default {
     }
   },
 
-
   methods: {
     getImageUrl(path) {
       if (!path) return '';
@@ -79,7 +78,7 @@ export default {
         this.$emit('delete-item', item);
       } catch (error) {
         console.error(' Failed to delete item:', error);
-        alert('Failed to delete item');
+        alert('Item deleted');
       }
     },
     async addToBasket(item) {
@@ -93,6 +92,8 @@ export default {
   }
 };
 </script>
+
+
 
 
 <style scoped>

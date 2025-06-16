@@ -195,30 +195,22 @@ export default {
 
     const deleteFromInventory = async (id) => {
       try {
-        // 1) Delete the item itself from /api/items
         await axios.delete(`http://localhost:3000/api/items/${id}`);
 
-        // 2) Remove it immediately from the local inventory array
         inventoryItems.value = inventoryItems.value.filter(item => item._id !== id);
 
-        // 3) Find any basket entries whose referenced item._id equals this id
-        const itemsToRemove = basketItems.value.filter(bi => bi.item._id === id);
+        const itemsToRemove = basketItems.value.filter(bi => bi.item && bi.item._id === id);
 
-        // 4) Delete each matching basket entry by its own _id,
-        //    sending { item: <itemId>, size: <size> } in the body
         for (const bi of itemsToRemove) {
           await axios.delete(`http://localhost:3000/api/basket/${bi._id}`, {
-            data: {
-              item: id,       // the Item’s _id
-              size: bi.size   // e.g. "M" or "L"
-            }
+            data: { item: id, size: bi.size }
           });
         }
 
-        // 5) Optionally re-fetch the entire basket so the UI re-renders
         await fetchBasket();
 
-        console.log(`Item ${id} and its basket entries were removed.`);
+        // Вот сюда просто вставь:
+        alert('✅ Товар успешно удалён!');
       } catch (error) {
         console.error('❌ Failed to delete item:', error);
         alert('❌ Failed to delete item');

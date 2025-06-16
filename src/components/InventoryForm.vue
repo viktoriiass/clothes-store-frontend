@@ -100,7 +100,7 @@ export default {
         return;
       }
       if (!this.form.imageFile) {
-        alert(' An image file is required.');
+        alert('An image file is required.');
         return;
       }
 
@@ -113,29 +113,37 @@ export default {
       formData.append('image', this.form.imageFile);
 
       try {
-        const response = await axios.post(
-          'http://localhost:3000/api/items',
-        );
+        const baseURL = process.env.VUE_APP_API_URL || 'http://localhost:3000';
+        const response = await axios.post(`${baseURL}/api/items`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
 
         alert(`Item added: ${response.data.name}`);
         this.$emit('item-added', response.data);
         this.resetForm();
       } catch (error) {
-        console.error(' Failed to add item:', error);
-        if (
-          error.response &&
-          error.response.data &&
-          error.response.data.error
-        ) {
-          alert(` ${error.response.data.error}`);
+        console.error('Failed to add item:', error);
+
+        if (error.response) {
+          console.error('Backend response data:', error.response.data);
+          console.error('Backend response status:', error.response.status);
+          alert(`Backend error: ${JSON.stringify(error.response.data)}`);
+        } else if (error.request) {
+          console.error('No response received:', error.request);
+          alert('No response received from server.');
         } else {
-          alert('An unknown error occurred while adding the item.');
+          console.error('Request error:', error.message);
+          alert(`Error: ${error.message}`);
         }
       }
     }
   }
 };
 </script>
+
+
 
 <style scoped>
 .container {
