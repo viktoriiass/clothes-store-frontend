@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import api from '../api.js';
+import axios from 'axios';
 
 export default {
   name: 'CurrentInventory',
@@ -63,31 +63,31 @@ export default {
     }
   },
 
+
   methods: {
     getImageUrl(path) {
       if (!path) return '';
-      const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-      return path.startsWith('/uploads') ? `${baseURL}${path}` : path;
+      return path.startsWith('/uploads') ? `http://localhost:3000${path}` : path;
     },
     async deleteItem(item) {
       try {
-        await api.delete(`/api/items/${item._id}`);
-        await api.delete(`/api/basket/${item._id}`, {
+        await axios.delete(`http://localhost:3000/api/items/${item._id}`);
+        await axios.delete(`http://localhost:3000/api/basket/${item._id}`, {
           params: { size: item.size }
         });
 
         this.$emit('delete-item', item);
       } catch (error) {
-        console.error('Failed to delete item:', error);
+        console.error(' Failed to delete item:', error);
         alert('Failed to delete item');
       }
     },
     async addToBasket(item) {
       try {
-        await api.post('/api/basket', item);
+        await axios.post('http://localhost:3000/api/basket', item);
         this.$emit('basket-updated');
       } catch (error) {
-        console.error('Failed to add to basket:', error);
+        console.error(' Failed to add to basket:', error);
       }
     }
   }

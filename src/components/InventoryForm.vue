@@ -51,7 +51,7 @@
 </template>
 
 <script>
-import api from '../api.js';
+import axios from 'axios';
 
 export default {
   name: 'InventoryForm',
@@ -100,7 +100,7 @@ export default {
         return;
       }
       if (!this.form.imageFile) {
-        alert('An image file is required.');
+        alert(' An image file is required.');
         return;
       }
 
@@ -113,19 +113,21 @@ export default {
       formData.append('image', this.form.imageFile);
 
       try {
-        const response = await api.post(
-          '/api/items',
-          formData,
-          { headers: { 'Content-Type': 'multipart/form-data' } }
+        const response = await axios.post(
+          'http://localhost:3000/api/items',
         );
 
         alert(`Item added: ${response.data.name}`);
         this.$emit('item-added', response.data);
         this.resetForm();
       } catch (error) {
-        console.error('Failed to add item:', error);
-        if (error.response && error.response.data && error.response.data.error) {
-          alert(`${error.response.data.error}`);
+        console.error(' Failed to add item:', error);
+        if (
+          error.response &&
+          error.response.data &&
+          error.response.data.error
+        ) {
+          alert(` ${error.response.data.error}`);
         } else {
           alert('An unknown error occurred while adding the item.');
         }
