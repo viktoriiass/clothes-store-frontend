@@ -77,6 +77,9 @@
 <script setup>
 import { defineProps, defineEmits } from 'vue';
 
+// Подключаем centralized API
+import api from '../api.js';
+
 const emit = defineEmits(['toggleBasket', 'removeFromBasket', 'updateQuantity']);
 
 defineProps({
@@ -89,8 +92,10 @@ defineProps({
 
 function getImageUrl(path) {
   if (!path) return '';
+
+  const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
   return path.startsWith('/uploads')
-    ? 'http://localhost:3000' + path
+    ? baseURL + path
     : path;
 }
 </script>
