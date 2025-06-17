@@ -1,8 +1,12 @@
 <template>
   <div class="login-container">
     <section class="login-form-section">
-      <h2>Login</h2>
-      <form @submit.prevent="login">
+      <h2 v-if="!forgotPasswordActive && !token">Login</h2>
+      <h2 v-else-if="token">Reset Password</h2>
+      <h2 v-else>Forgot Password</h2>
+
+      <!-- Login -->
+      <form v-if="!forgotPasswordActive && !token" @submit.prevent="login">
         <label for="username">Username:</label>
         <input type="text" id="username" v-model="username" placeholder="Enter your username" required>
 
@@ -13,13 +17,31 @@
           <label>
             <input type="checkbox" v-model="rememberMe"> Remember me
           </label>
-          <a href="#" class="forgot-password">Forgot password?</a>
+          <a href="#" class="forgot-password" @click.prevent="forgotPasswordActive = true">Forgot password?</a>
         </div>
 
         <button type="submit" class="login-button">Log In</button>
       </form>
 
-      <div class="login-footer">
+      <!-- Forgot Password Request -->
+      <form v-if="forgotPasswordActive && !token" @submit.prevent="submitForgotPassword">
+        <label for="email">Enter your email:</label>
+        <input type="email" id="email" v-model="email" placeholder="Enter your email" required>
+        <button type="submit" class="login-button">Send Reset Link</button>
+
+        <div class="login-footer">
+          <a href="#" @click.prevent="forgotPasswordActive = false">Back to Login</a>
+        </div>
+      </form>
+
+      <!-- Reset Password (token present) -->
+      <form v-if="token" @submit.prevent="submitNewPassword">
+        <label for="newPassword">Enter new password:</label>
+        <input type="password" id="newPassword" v-model="newPassword" placeholder="Enter new password" required>
+        <button type="submit" class="login-button">Reset Password</button>
+      </form>
+
+      <div class="login-footer" v-if="!forgotPasswordActive && !token">
         <p>Don't have an account? <router-link to="/register">Register now</router-link></p>
       </div>
     </section>
@@ -28,14 +50,25 @@
 
 <script>
 import * as authService from '../auth';
+import axios from 'axios';
 
 export default {
   data() {
     return {
       username: '',
       password: '',
-      rememberMe: false
+      rememberMe: false,
+      forgotPasswordActive: false,
+      email: '',
+      token: '',
+      newPassword: ''
     };
+  },
+  mounted() {
+    const urlToken = this.$route.params.token;
+    if (urlToken) {
+      this.token = urlToken;
+    }
   },
   methods: {
     async login() {
@@ -46,6 +79,28 @@ export default {
         this.$router.push('/');
       } catch (err) {
         alert(err.response?.data?.error || 'Login failed');
+      }
+    },
+
+    async submitForgotPassword() {
+      try {
+        await authService.forgotPassword(this.email);
+        alert('Reset link has been sent to your email!');
+        this.forgotPasswordActive = false;
+      } catch (err) {
+        alert(err.response?.data?.error || 'Reset request failed');
+      }
+    },
+
+    async submitNewPassword() {
+      try {
+        await axios.post(`http://localhost:3000/api/auth/reset-password/${this.token}`, {
+          newPassword: this.newPassword
+        });
+        alert('Password successfully reset!');
+        this.$router.push('/auth');
+      } catch (err) {
+        alert(err.response?.data?.error || 'Reset failed');
       }
     }
   }
@@ -88,7 +143,7 @@ label {
   color: #333;
 }
 
-input[type="text"], input[type="password"] {
+input[type="text"], input[type="password"], input[type="email"] {
   width: 100%;
   padding: 12px;
   border: 1px solid #ccc;

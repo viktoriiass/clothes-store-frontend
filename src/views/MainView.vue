@@ -1,6 +1,5 @@
 <template>
   <div id="basket-app">
-
     <HeaderComponent />
     <HamburgerMenu />
     <BasketDropdown
@@ -31,7 +30,6 @@
       </section>
     </main>
 
-    <FooterComponent />
   </div>
 </template>
 
@@ -46,7 +44,7 @@ import BannerSection from '@/components/BannerSection.vue';
 import CatalogGrid from '@/components/CatalogGrid.vue';
 import InventoryForm from '@/components/InventoryForm.vue';
 import CurrentInventory from '@/components/CurrentInventory.vue';
-import FooterComponent from '@/components/FooterComponent.vue';
+
 
 export default {
   name: 'App',
@@ -58,7 +56,7 @@ export default {
     CatalogGrid,
     InventoryForm,
     CurrentInventory,
-    FooterComponent
+
   },
   setup() {
     const basketItems = ref([]);
@@ -71,13 +69,10 @@ export default {
     async function fetchBasket() {
       try {
         const res = await axios.get('http://localhost:3000/api/basket');
-        // If res.data looks like [{ _id, item: {...}, size, quantity, price }, ...]
-        // Filter out any entry where `entry.item` is null, just in case:
         const cleaned = res.data.filter(entry => entry.item !== null);
-        // Now map to the shape that your BasketDropdown expects:
         basketItems.value = cleaned.map(entry => ({
           _id:      entry._id,
-          item:     entry.item,        // nested Item object
+          item:     entry.item,
           size:     entry.size,
           quantity: entry.quantity,
           price:    entry.price
@@ -124,10 +119,9 @@ export default {
 
     const addToBasket = async (item) => {
       try {
-        // 1) Build _only_ what the controller needs:
         const payload = {
-          item: item._id,   // YOUR item must have an `_id` field (the Mongo ObjectId string)
-          size: item.size   // YOUR item must have a `size` field (e.g. "M" or "L")
+          item: item._id,
+          size: item.size
         };
 
         // 2) Send that minimal payload to the server:
@@ -210,15 +204,13 @@ export default {
 
         await fetchBasket();
 
-        // Вот сюда просто вставь:
-        alert('✅ Товар успешно удалён!');
+
+        alert('✅ Items added!');
       } catch (error) {
         console.error('❌ Failed to delete item:', error);
         alert('❌ Failed to delete item');
       }
     };
-
-
 
     return {
       basketItems,

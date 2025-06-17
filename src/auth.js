@@ -1,12 +1,24 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api/auth';
-
-export async function login(username,password) {
-  const res = await axios.post(`${API_URL}/login`, { username, password });
+export async function login(username, password) {
+  const res = await axios.post('http://localhost:3000/api/auth/login', { username, password });
   return res.data.token;
 }
 
+
 export async function register(username, email, password) {
-  await axios.post(`${API_URL}/register`, { username, email, password });
+  const res = await axios.post('http://localhost:3000/api/auth/register', { username, email, password });
+  return res.data;
+}
+
+
+export async function forgotPassword(email) {
+  const res = await axios.post('http://localhost:3000/api/auth/request-password-reset', { email });
+  return res.data;
+}
+
+
+export async function resetPassword(token, newPassword) {
+  const res = await axios.post(`http://localhost:3000/api/auth/reset-password/${token}`, { newPassword });
+  return res.data;
 }
