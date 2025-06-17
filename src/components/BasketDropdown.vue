@@ -2,7 +2,7 @@
   <div class="header-wrapper">
     <div class="top-nav">
       <a href="#">Search</a>
-      <a href="login.html">Log in</a>
+      <router-link to="/auth">Log in</router-link>
       <a href="#">Help</a>
 
       <div class="basket-icon" @click="emit('toggleBasket')">
