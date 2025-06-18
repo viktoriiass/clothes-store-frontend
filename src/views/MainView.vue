@@ -20,13 +20,13 @@
     <main id="inventory-app">
       <InventoryForm @add-to-inventory="addToInventory" />
       <section>
-        <CurrentInventory
-          :items="inventoryItems"
-          :key="inventoryKey"
-          @add-to-basket="addToBasket"
-          @delete-from-inventory="deleteFromInventory"
-          @basket-updated="refreshBasket"
-        />
+      <CurrentInventory
+        :items="inventoryItems"
+        @add-to-basket="addToBasket"
+        @delete-from-inventory="deleteFromInventory"
+        @basket-updated="refreshBasket"
+        @inventory-deleted="handleInventoryDeletion"
+      />
       </section>
     </main>
 
@@ -34,8 +34,9 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import axios from 'axios';
+import socket from '@/socket';
 
 import HeaderComponent from '@/components/HeaderComponent.vue';
 import HamburgerMenu from '@/components/HamburgerMenu.vue';
@@ -100,7 +101,31 @@ export default {
 
     onMounted(() => {
       refreshEverything();
+
+      socket.on('inventoryUpdated', (newItem) => {
+        inventoryItems.value.push(newItem);
+      });
+
+      socket.on('basketUpdated', (entries) => {
+        const cleaned = entries.filter(entry => entry.item !== null);
+        basketItems.value = cleaned.map(entry => ({
+          _id:      entry._id,
+          item:     entry.item,
+          size:     entry.size,
+          quantity: entry.quantity,
+          price:    entry.price
+        }));
+      });
     });
+
+    onBeforeUnmount(() => {
+      socket.off('inventoryUpdated');
+      socket.off('basketUpdated');
+    });
+    const handleInventoryDeletion = (itemId) => {
+      inventoryItems.value = inventoryItems.value.filter(item => item._id !== itemId);
+      inventoryKey.value = Date.now();
+    };
 
     const totalItems = computed(() =>
       basketItems.value.reduce((total, item) => total + item.quantity, 0)
@@ -175,6 +200,9 @@ export default {
         console.error(' Failed to update quantity:', err.response?.data || err.message);
       }
     }
+    onBeforeUnmount(() => {
+      socket.off('inventoryUpdated');
+    });
   };
 
     const addToInventory = async (item) => {
@@ -226,7 +254,8 @@ export default {
       addToInventory,
       deleteFromInventory,
       refreshBasket,
-      refreshEverything
+      refreshEverything,
+      handleInventoryDeletion
     };
   }
 };
