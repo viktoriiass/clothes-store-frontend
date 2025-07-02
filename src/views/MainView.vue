@@ -1,6 +1,14 @@
 <template>
   <div id="basket-app">
-    <HeaderComponent />
+    <HeaderComponent
+      :basketItems="basketItems"
+      :isBasketOpen="isBasketOpen"
+      :lastAddedItem="lastAddedItem"
+      :totalPrice="totalPrice"
+      @toggleBasket="toggleBasket"
+      @removeFromBasket="removeFromBasket"
+      @updateQuantity="updateQuantity"
+    />
     <HamburgerMenu />
     <BasketDropdown
        ref="basketDropdown"
@@ -34,9 +42,10 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, provide, reactive, getCurrentInstance, onMounted, onBeforeUnmount, computed } from 'vue';
 import axios from 'axios';
 import socket from '@/socket';
+
 
 import HeaderComponent from '@/components/HeaderComponent.vue';
 import HamburgerMenu from '@/components/HamburgerMenu.vue';
@@ -66,6 +75,18 @@ export default {
     const inventoryItems = ref([]);
     const inventoryKey = ref(Date.now());
     let hideTimeout = null;
+    const user = reactive({
+        username: null,
+        email: null
+      });
+    const logout = () => {
+      localStorage.removeItem('user');
+      user.username = null;
+      user.email = null;
+    };
+
+    provide('user', user);
+    provide('logout', logout);
 
     async function fetchBasket() {
       try {
@@ -102,6 +123,17 @@ export default {
     onMounted(() => {
       refreshEverything();
 
+    const storedUser = localStorage.getItem('user');
+    if (storedUser && storedUser !== 'undefined') {
+      try {
+        const parsed = JSON.parse(storedUser);
+        user.username = parsed.username;
+        user.email = parsed.email;
+      } catch (err) {
+        console.warn(' error pars user:', err);
+      }
+    }
+
       socket.on('inventoryUpdated', (newItem) => {
         inventoryItems.value.push(newItem);
       });
@@ -109,11 +141,11 @@ export default {
       socket.on('basketUpdated', (entries) => {
         const cleaned = entries.filter(entry => entry.item !== null);
         basketItems.value = cleaned.map(entry => ({
-          _id:      entry._id,
-          item:     entry.item,
-          size:     entry.size,
+          _id: entry._id,
+          item: entry.item,
+          size: entry.size,
           quantity: entry.quantity,
-          price:    entry.price
+          price: entry.price
         }));
       });
     });
@@ -149,13 +181,13 @@ export default {
           size: item.size
         };
 
-        // 2) Send that minimal payload to the server:
+        // Send that minimal payload to the server
         await axios.post('http://localhost:3000/api/basket', payload);
 
-        // 3) Refresh the basket contents (so you see the new entry)
+        // Refresh the basket contents
         await fetchBasket();
 
-        // 4) Show the toast (+ open dropdown) for 2 seconds
+        //Show the toast (+ open dropdown) for 2 seconds
         lastAddedItem.value = item;
         isBasketOpen.value  = true;
         if (hideTimeout) clearTimeout(hideTimeout);
@@ -190,7 +222,7 @@ export default {
       await removeFromBasket(index);
     } else {
       try {
-        const cleanSize = String(item.size).split(':')[0]; // Clean size (e.g., 'S')
+        const cleanSize = String(item.size).split(':')[0];
         await axios.put(
           `http://localhost:3000/api/basket/${item._id}?size=${cleanSize}`,
           { quantity: newQty }
@@ -203,11 +235,15 @@ export default {
     onBeforeUnmount(() => {
       socket.off('inventoryUpdated');
     });
+
+    const app = getCurrentInstance();
+      if (app) {
+        app.appContext.app.config.globalProperties.$user = user;
+      }
   };
 
     const addToInventory = async (item) => {
       try {
-        // item = { name: "Foo", price: "12.50", … }
         const res = await axios.post('http://localhost:3000/api/items', item);
         inventoryItems.value.push(res.data);
         inventoryKey.value = Date.now();
@@ -233,10 +269,10 @@ export default {
         await fetchBasket();
 
 
-        alert('✅ Items added!');
+        alert(' Items added!');
       } catch (error) {
-        console.error('❌ Failed to delete item:', error);
-        alert('❌ Failed to delete item');
+        console.error(' Failed to delete item:', error);
+        alert(' Failed to delete item');
       }
     };
 
@@ -255,7 +291,9 @@ export default {
       deleteFromInventory,
       refreshBasket,
       refreshEverything,
-      handleInventoryDeletion
+      handleInventoryDeletion,
+      user,
+      logout
     };
   }
 };

@@ -1,10 +1,15 @@
 <template>
   <div class="header-wrapper">
     <div class="top-nav">
-      <a href="#">Search</a>
-      <router-link to="/auth">Log in</router-link>
-      <a href="#">Help</a>
+      <router-link to="/search">Search</router-link>
+      <template v-if="user && user.username">
+        <span>:) {{ user.username }},
+        <a href="#" @click.prevent="logout">logout</a></span>
+      </template>
+      <router-link v-else to="/auth">Log in</router-link>
 
+      <router-link to="/help">Help</router-link>
+      <!-- Basket -->
       <div class="basket-icon" @click="emit('toggleBasket')">
         <span class="basket-icon-text">Basket</span>
         <span v-if="basketItems.length > 0" class="basket-count">
@@ -13,6 +18,7 @@
       </div>
 
       <div class="basket-dropdown" :class="{ active: isBasketOpen }">
+
         <div class="basket-header">
           <h3>Your Basket</h3>
           <button class="close-basket" @click="emit('toggleBasket')">×</button>
@@ -32,7 +38,6 @@
             :key="item.id + '-' + item.size"
             class="basket-item"
           >
-
             <img
               v-if="item.item && item.item.image"
               :src="getImageUrl(item.item.image)"
@@ -78,12 +83,20 @@
 import { defineProps, defineEmits } from 'vue';
 
 const emit = defineEmits(['toggleBasket', 'removeFromBasket', 'updateQuantity']);
+import { inject } from 'vue';
 
+// правильно: user — это уже ref
+const user = inject('user');
+const logout = inject('logout');
+
+
+// eslint-disable-next-line no-undef
 defineProps({
   items:Array,
   basketItems: Array,
   isBasketOpen: Boolean,
   lastAddedItem: Object,
+  totalItems:Array,
   totalPrice: [String, Number]
 });
 

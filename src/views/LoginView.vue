@@ -73,11 +73,25 @@ export default {
   methods: {
     async login() {
       try {
-        const token = await authService.login(this.username, this.password);
+        const res = await axios.post('http://localhost:3000/api/auth/login', {
+          username: this.username,
+          password: this.password
+        });
+
+        const { token, user } = res.data;
+
+        if (!user) {
+          console.warn(' user not returned from server');
+          return;
+        }
+
         localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+
         alert('Logged in!');
         this.$router.push('/');
       } catch (err) {
+        console.error('Login failed:', err.response?.data || err);
         alert(err.response?.data?.error || 'Login failed');
       }
     },

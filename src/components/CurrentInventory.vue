@@ -47,7 +47,7 @@ import socket from '@/socket';
 
 export default {
   name: 'CurrentInventory',
-  emits: ['add-to-basket', 'delete-item', 'basket-updated', 'inventory-updated'], // 🔧 добавили событие
+  emits: ['add-to-basket', 'delete-item', 'basket-updated', 'inventory-updated'],
   props: {
     newItem: Object,
     items: Array
@@ -66,7 +66,7 @@ export default {
 
   mounted() {
     socket.on('inventoryDeleted', ({ itemId }) => {
-      this.$emit('inventory-deleted', itemId); // 🔧 сообщаем родителю
+      this.$emit('inventory-deleted', itemId);
     });
   },
 
