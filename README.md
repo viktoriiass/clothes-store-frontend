@@ -35,28 +35,6 @@ This project demonstrates modern web development techniques using Node.js, Expre
 * **MongoDB** (Atlas cluster)
 * **Gmail Account** with App Password (for email functionality)
 
----
-
-## Project Structure
-
-```
-clothes-store/
-├── backend/          # Express API
-│   ├── models/       # Mongoose schemas
-│   ├── routes/       # Auth, Items, Basket
-│   ├── utils/        # Mailer
-│   ├── app.js        # Entry point
-│   └── .env          # Server environment variables
-
-└── frontend/         # Vue 3 Application
-    ├── src/
-    │   ├── components/  # Reusable UI components
-    │   ├── views/       # Page-level components
-    │   ├── router/      # Vue Router setup
-    │   └── main.js      # App initialization
-    ├── public/         # Static assets
-    └── vite.config.js  # Vite configuration
-```
 
 ---
 
